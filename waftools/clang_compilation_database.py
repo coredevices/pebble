@@ -49,18 +49,28 @@ def write_compilation_database(ctx):
         Logs.info("Store compile comands in %s" % file_path)
         clang_db = dict((x["file"], x) for x in json.load(database_file))
         for task in getattr(ctx, 'clang_compilation_database_tasks', []):
+                # we need only to generate last_cmd, so override
+                # exec_command temporarily
+                def exec_command(self, *k, **kw):
+                    return 0
+                old_exec = task.exec_command
+                task.exec_command = exec_command
+                task.run()
+                task.exec_command = old_exec
+
                 try:
-                        cmd = task.last_cmd
+                        arguments = task.last_cmd
                 except AttributeError:
                         continue
+
                 filename = task.inputs[0].abspath()
                 entry = {
                         "directory" : getattr(task, 'cwd', ctx.variant_dir),
-                        "command"   : " ".join(cmd),
+                        "arguments"   : arguments,
                         "file"    : filename,
                 }
                 clang_db[filename] = entry
-        database_file.write(json.dumps(clang_db.values(), indent=2))
+        database_file.write_json(list(clang_db.values()))
 
 
 def options(opt):
