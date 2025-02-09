@@ -43,11 +43,14 @@ def write_compilation_database(ctx):
         "Write the clang compilation database as json"
         database_file = ctx.bldnode.make_node('compile_commands.json')
         file_path = str(database_file.path_from(ctx.path))
+
         if not os.path.exists(file_path):
             with open(file_path, 'w') as f:
                 f.write('[]')
+
         Logs.info("Store compile comands in %s" % file_path)
         clang_db = dict((x["file"], x) for x in json.load(database_file))
+
         for task in getattr(ctx, 'clang_compilation_database_tasks', []):
                 # we need only to generate last_cmd, so override
                 # exec_command temporarily
@@ -66,8 +69,8 @@ def write_compilation_database(ctx):
                 filename = task.inputs[0].abspath()
                 entry = {
                         "directory" : getattr(task, 'cwd', ctx.variant_dir),
-                        "arguments"   : arguments,
-                        "file"    : filename,
+                        "arguments" : arguments,
+                        "file"      : filename,
                 }
                 clang_db[filename] = entry
         database_file.write_json(list(clang_db.values()))
