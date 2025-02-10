@@ -23,12 +23,15 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Set up environment
         run: |
           sudo apt-get update
           sudo apt-get install -y gettext gcc-multilib
-          pip install -r requirements-linux.txt
-          pip install -e \
+          uv pip install -r requirements-linux.txt
+          uv pip install -e \
             python_libs/pblprog \
             python_libs/pebble-commander \
             python_libs/pulse2 \
